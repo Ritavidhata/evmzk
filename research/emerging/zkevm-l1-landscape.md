@@ -19,7 +19,7 @@ The zkEVM-native Ethereum vision combines several proposals (EIP-7886, FOCIL, VO
 ### EIP-7805: FOCIL (Fork-choice enforced Inclusion Lists)
 - **Authors:** Thomas Thiery, Francesco D'Amato, Julian Ma, Barnabé Monnot, Terence Tsao, Jacob Kaufmann, Jihoon Song
 - **Status:** Draft
-- **Core idea:** Committee-based inclusion lists to preserve censorship resistance in a builder-dominated world
+- **Core idea:** Committee-based inclusion lists to preserve censorship resistance
 - **Affiliation:** Ethereum Foundation, Offchain Labs
 
 ### VOPS (Validity-Only Partial Statelessness)
@@ -37,6 +37,20 @@ The zkEVM-native Ethereum vision combines several proposals (EIP-7886, FOCIL, VO
 - **Purpose:** Canonical educational resource for zkEVM integration into Ethereum L1
 - **Structure:** Part I (using zkEVMs), Part II (crypto primitives), Part III (audience-specific), Part IV (live status)
 
+### Verified zkEVM Project
+- **Website:** https://verified-zkevm.org/
+- **Contact:** verified-zkevm@ethereum.org
+- **Purpose:** Apply formal verification (Lean 4) to zkEVMs for mathematical correctness guarantees
+- **Key repos:**
+  - ArkLib (⭐190) — Formally Verified Arguments of Knowledge in Lean
+  - clean (⭐136) — Lean Circuit DSL
+  - VCV-io (⭐91) — Formalized Cryptography Proofs
+  - CompPoly (⭐40) — Computable Polynomial Model
+  - evm-asm (⭐20) — EVM Assembly in Lean
+  - iris-lean — Separation Logic Framework
+  - rust-lean — Rust code verification in Lean 4
+- **Significance:** Mathematical proofs of correctness > audits > testing. Critical before any zkVM touches L1 consensus.
+
 ---
 
 ## Proving Teams (Ethproofs On-Prem Cohort)
@@ -48,13 +62,12 @@ Five teams selected by the Ethereum Foundation for the $65K on-prem proving init
 - **Guest:** revm
 - **Hardware:** 24 GPU clusters (Sevilla Cloud, Girona On-Prem)
 - **Performance:** 98.31% blocks proven <12s (leading the RTP cohort)
-- **Notable:** Currently the top-performing prover on Ethproofs
 
 ### 2. Succinct
-- **zkVM:** SP1 (Hypercube)
+- **zkVM:** SP1 Hypercube
 - **Guest:** revm
-- **Notable:** Major ecosystem player — Optimism chose SP1 for ZK proofs on the Superchain, Google Quantum AI uses SP1 for elliptic curve research
-- **Infrastructure:** Decentralized Prover Network (explorer.succinct.xyz)
+- **Notable:** Optimism chose SP1 for Superchain ZK, Google Quantum AI uses SP1, Base uses it for $7.4B deposits
+- **Infrastructure:** Decentralized Prover Network
 - **Token:** PROVE
 
 ### 3. Brevis
@@ -63,18 +76,16 @@ Five teams selected by the Ethereum Foundation for the $65K on-prem proving init
 - **Notable:** Security Sprint M1 completed
 
 ### 4. Matter Labs
-- **zkVM:** Airbender (zkSync native)
-- **Guest:** zkSyncOS (not revm — custom execution environment)
-- **Notable:** The only team NOT using revm as guest. Building their own execution + proving stack
-- **Context:** Matter Labs operates zkSync Era, one of the largest ZK rollups
+- **zkVM:** Airbender
+- **Guest:** zkSyncOS (NOT revm — custom execution environment)
+- **Notable:** Only team NOT using revm. Vertical integration of execution + proving
 
 ### 5. Axiom
 - **zkVM:** OpenVM 2.0
 - **Guest:** revm
 - **Hardware:** 16x NVIDIA 5090 cluster
 - **Performance:** 97.53% liveness, $0.0125/proof (most cost-efficient)
-- **Notable:** Declined on-prem grant participation but still actively proving. OpenVM is open-source, formally verified in Lean by Nethermind Research
-- **OpenVM:** Modular no-CPU zkVM architecture, v1.5.0 production-ready (Feb 2026)
+- **Notable:** OpenVM formally verified in Lean by Nethermind Research. Declined on-prem grant but still actively proving.
 
 ---
 
@@ -84,10 +95,50 @@ Five teams selected by the Ethereum Foundation for the $65K on-prem proving init
 - **zkVM:** ZKsync Airbender
 - **Guest:** zilkworm (custom)
 - **Hardware:** 2x 14700K + 5090x2 (Vast.ai)
-- **Performance:** 78.90% liveness, lowest cost at $0.0032/proof
+- **Performance:** Lowest cost at $0.0032/proof
 
-### zkDTVM
-- Evaluated but 0% eligibility so far
+### zkDTVM — Evaluated, 0% eligibility so far
+
+---
+
+## zkVM Deep Dive
+
+### SP1 Hypercube (Succinct)
+- **Architecture:** RISC-V (RV64IM), shard-based proving (~2²² instructions/shard)
+- **Proof system:** Multilinear — LogUp GKR, Basefold PCS, Zerocheck, Jagged/Dense PCS
+- **Key innovations:** VEIL (hash-based ZK with 3% overhead → post-quantum path), decentralized prover network
+- **Production use:** Optimism, Base, Google Quantum AI
+- **GitHub:** https://github.com/succinctlabs/sp1
+
+### Pico (Brevis)
+- **Architecture:** Glue-and-Coprocessor model, modular chips
+- **Proof system:** STARK on Plonky3, interchangeable backends (KoalaBear, BabyBear, Mersenne31)
+- **Key innovations:** Flexible proving backends, app-specific coprocessors
+- **GitHub:** https://github.com/brevis-network/pico
+
+### Airbender (Matter Labs)
+- **Architecture:** Custom VM (zkSyncOS), NOT EVM-equivalent
+- **Key innovation:** Purpose-built for zkSync, native account abstraction, ZK-optimized ISA
+- **Unique:** Only zkVM in the race proving a non-EVM execution environment
+- **Cheapest prover:** $0.0032/proof
+
+### OpenVM (Axiom)
+- **Architecture:** No-CPU modular chips, extensible ISA
+- **Proof system:** STARK on Plonky3
+- **Key innovations:** Formally verified in Lean (Nethermind), native field arithmetic via Rust intrinsics
+- **Production:** v1.5.0 (Feb 2026)
+- **GitHub:** https://github.com/openvm-org/openvm
+
+### Comparison Matrix
+
+| Feature | SP1 Hypercube | Pico | Airbender | OpenVM |
+|---------|---------------|------|-----------|--------|
+| Builder | Succinct | Brevis | Matter Labs | Axiom |
+| Architecture | RISC-V + sharding | Glue + Coprocessor | Custom (zkSyncOS) | No-CPU chips |
+| Guest on Ethproofs | revm | revm | zilkworm/zkSyncOS | revm |
+| EVM compatible | ✅ | ✅ | ❌ | ✅ |
+| Formally verified | Partial | No | No | ✅ (Lean) |
+| Production chains | Optimism, Base | Brevis ecosystem | zkSync Era | Axiom ecosystem |
 
 ---
 
@@ -96,36 +147,43 @@ Five teams selected by the Ethereum Foundation for the $65K on-prem proving init
 ### Ethproofs (Ethereum Foundation)
 - **Website:** https://ethproofs.org
 - **Run by:** Fara Woolf, Will Corcoran (EF)
-- **Purpose:** Track real-time proving performance, coordinate RTP grants ($300K total, 3 x $100K prizes still unclaimed)
-- **Updated RTP criteria (March 2026):** P99 ≤10s, ≥128-bit security (soundcalc), ≤$100K CAPEX, ≤10kW power, ≤300KiB proof size
+- **Purpose:** Track real-time proving performance, coordinate RTP grants ($300K total, 3 × $100K still unclaimed)
+- **Updated RTP criteria (March 2026):** P99 ≤10s, ≥128-bit security, ≤$100K CAPEX, ≤10kW, ≤300KiB proof size
 - **Phase:** Phase 2 of 5 (Security Sprint)
 - **Next milestone:** Optional proving at Hegotá hard fork (late 2026)
 
-### Ethereum Foundation Cryptography Team
-- Running the zkVM Security Sprint (soundcalc integration, formal verification)
-- Evaluating zkVM implementations for potential L1 integration (separate from Ethproofs)
+### EF Cryptography Team
+- Running zkVM Security Sprint (soundcalc integration)
+- Evaluating zkVM implementations for L1 integration
 
-### Ethereum Foundation zkEVM Team
-- Own process for selecting zkVM implementations for L1 integration
+### EF zkEVM Team
+- Separate process for selecting zkVM implementations for L1
 - Published Real-Time Proving guidelines (July 2025)
 - Published zkEVM Security Foundations (December 2025)
 
 ---
 
-## Current Performance Snapshot
+## Performance Snapshot (May 2026)
 
-From Ethproofs live data:
-- **301,452 total proofs generated** across all evaluated provers
-- **67.0% proved in ≤10 seconds** (target: ≥70%)
-- **6.19% "stunned"** (slightly over 10s)
-- **3.49% "paralyzed"** (significantly over)
-- **23.4% offline**
-- **91.5% eligible rate** among submitted proofs
-- Best performer: ZisK Cluster at 98.31% <12s (still under 99% RTP grant threshold)
+- 301,452 total proofs across all evaluated provers
+- 67% proved in ≤10s (target: ≥70%)
+- ZisK leads at 98.31% <12s (still under 99% RTP threshold)
+- Nobody has claimed the $100K grants yet
 
 ---
 
-## Key Relationships & Dependencies
+## Open Incentive Problems (from zkevm.fyi)
+
+1. **Fallback Provers (HIGH PRIORITY):** 1-of-N trust assumption — always need ≥1 prover available. Multiplexing problem unsolved.
+2. **Prover Killers (HIGH PRIORITY):** Blocks too hard to prove → liveness failure. "You build it, you prove it" proposal.
+3. **Prover Markets (LOWER PRIORITY):** Open competitive market vs. fallback-only.
+4. **Censorship Resistance:** FOCIL handles txs, blob censorship still unsolved.
+5. **Offchain vs Onchain Proofs:** Design question still open.
+6. **Network Throughput:** State growth limits with higher throughput unclear.
+
+---
+
+## Key Dependencies
 
 ```
 EIP-7886 (Delayed Execution)
@@ -134,6 +192,8 @@ EIP-7886 (Delayed Execution)
         └── Requires VOPS (validator state reduction)
         └── Requires FOCIL (censorship resistance)
         └── Requires peerDAS (blob-native data distribution)
+        └── Requires formal verification (Verified zkEVM)
+        └── Requires incentive solutions (prover killers, fallback provers)
         └── Target: Hegotá hard fork (late 2026)
 ```
 

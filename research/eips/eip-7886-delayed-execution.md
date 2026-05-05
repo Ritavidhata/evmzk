@@ -13,7 +13,7 @@ Separate block validation from execution. Validators can attest to blocks withou
 
 ## Core Mechanism
 - Execution outputs (receipts, blooms, requests) are *deferred* to the next block
-- Block headers carry `parent_*` fields that reference the previous block's execution results
+- Block headers carry `parent_*` fields referencing the previous block's execution results
 - `pre_state_root` replaces `state_root` — represents state *before* execution
 - `parent_execution_reverted` flag handles reversion cases
 
@@ -52,13 +52,13 @@ Separate block validation from execution. Validators can attest to blocks withou
 ## Implications
 - Decouples consensus from execution timing
 - Enables potentially much higher block gas limits
-- Prerequisite for zkEVM-based verification (validators verify proofs instead of re-executing)
+- Prerequisite for zkEVM-based verification
 - Hard fork required
 
 ## Related
 - Combined with zkEVM proofs → same-slot or one-slot-delayed verification
 - Combined with VOPS → validators can run with ~8.4 GiB state instead of 200+ GiB
-- Combined with FOCIL → censorship resistance preserved in delayed execution world
+- Combined with FOCIL (EIP-7805) → censorship resistance preserved in delayed execution world
 - Combined with peerDAS → blob-native data distribution for execution payloads
 
 ---
