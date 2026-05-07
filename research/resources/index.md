@@ -1,5 +1,8 @@
 # Resource Index
 
+## Full Landscape Catalog
+- **ZK Products & Projects Catalog:** [research/emerging/zk-landscape-catalog.md](../emerging/zk-landscape-catalog.md) — 60+ projects across zkVMs, libraries, rollups, ZKML, privacy, hardware, and education (updated May 2026)
+
 ## Key Repositories
 - **evmzk research:** https://github.com/Ritavidhata/evmzk
 - **soundcalc (EF):** https://github.com/ethereum/soundcalc
